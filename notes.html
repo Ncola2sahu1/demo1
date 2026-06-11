@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Notes App — Sahil Chauhan</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  /* App-specific styles */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink2);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .back-btn:hover {
+    color: var(--accent);
+    transform: translateX(-4px);
+  }
+
+  .notes-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  /* Form Sidebar */
+  .note-form-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.01);
+  }
+
+  .form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: var(--ink);
+  }
+
+  .input-group {
+    margin-bottom: 1rem;
+  }
+  .input-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink2);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .note-field {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .note-field:focus {
+    border-color: var(--accent);
+  }
+  
+  textarea.note-field {
+    height: 120px;
+    resize: none;
+  }
+
+  /* Color selection bubbles */
+  .color-picker {
+    display: flex;
+    gap: 0.45rem;
+    margin-top: 0.25rem;
+  }
+  .color-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .color-dot:hover {
+    transform: scale(1.1);
+  }
+  .color-dot.selected {
+    transform: scale(1.1);
+    border-color: var(--ink);
+  }
+
+  .btn-save-note {
+    width: 100%;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 0.5rem;
+  }
+  .btn-save-note:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .btn-cancel {
+    width: 100%;
+    background: transparent;
+    color: var(--ink2);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 0.65rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+    margin-top: 0.5rem;
+    display: none;
+  }
+  .btn-cancel:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.04);
+  }
+
+  /* Search and Filter toolbar */
+  .notes-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .notes-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.5rem;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.01);
+  }
+
+  .notes-search {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .notes-search input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem 0.6rem 2.2rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .notes-search input:focus {
+    border-color: var(--accent);
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink3);
+    font-size: 0.9rem;
+  }
+
+  .notes-filter {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .filter-chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink2);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-chip:hover {
+    color: var(--ink);
+    border-color: var(--ink3);
+  }
+  .filter-chip.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  /* Notes display grid */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .note-card {
+    border-radius: 14px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.01);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+    animation: fadeInNote 0.35s ease both;
+  }
+  
+  @keyframes fadeInNote {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .note-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+  }
+
+  /* Note Card Accent Colors */
+  .note-card.c-rose { background: #fffcfc; border: 1px solid #fecdd3; --accent-light: #fecdd3; }
+  .note-card.c-blue { background: #fbfdff; border: 1px solid #bfdbfe; --accent-light: #bfdbfe; }
+  .note-card.c-emerald { background: #fcfdfc; border: 1px solid #a7f3d0; --accent-light: #a7f3d0; }
+  .note-card.c-amber { background: #fffdfa; border: 1px solid #fde68a; --accent-light: #fde68a; }
+  .note-card.c-purple { background: #fdfcff; border: 1px solid #ddd6fe; --accent-light: #ddd6fe; }
+
+  .note-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .note-category {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink2);
+    background: rgba(0,0,0,0.04);
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    border: 1px solid rgba(0,0,0,0.03);
+  }
+
+  .note-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .note-desc {
+    font-size: 0.85rem;
+    color: var(--ink2);
+    font-weight: 300;
+    line-height: 1.6;
+    word-break: break-word;
+    flex: 1;
+    white-space: pre-wrap;
+  }
+
+  .note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(0,0,0,0.04);
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--ink3);
+  }
+
+  .note-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .btn-note-action {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.88rem;
+    padding: 0.25rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    color: var(--ink3);
+  }
+  .btn-note-action:hover {
+    color: var(--ink);
+    background: rgba(0, 0, 0, 0.04);
+  }
+  .btn-note-action.delete-action:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--ink3);
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+  .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .empty-text {
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 800px) {
+    .notes-layout {
+      grid-template-columns: 1fr;
+    }
+    .note-form-card {
+      position: static;
+    }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">SC<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="skills.html">Skills</a></li>
+    <li><a href="projects.html" class="active">Projects</a></li>
+    <li><a href="achievements.html">Achievements</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="page">
+  <a href="projects.html" class="back-btn">← Back to Projects</a>
+  
+  <div class="page-eyebrow">Interactive Applications</div>
+  <h1 class="page-title">Quick <em>Notes</em></h1>
+  <div class="divider"></div>
+
+  <div class="notes-layout reveal">
+    
+    <!-- Left Sidebar: Note Form -->
+    <div class="note-form-card">
+      <h3 class="form-section-title" id="form-title">Create Note</h3>
+      <form id="note-form">
+        <input type="hidden" id="edit-id" value="" />
+        
+        <div class="input-group">
+          <label for="note-title">Title</label>
+          <input type="text" id="note-title" class="note-field" placeholder="e.g. Shopping List" required autocomplete="off" />
+        </div>
+
+        <div class="input-group">
+          <label for="note-category">Category</label>
+          <select id="note-category" class="note-field">
+            <option value="Personal">Personal</option>
+            <option value="Work">Work</option>
+            <option value="Ideas">Ideas</option>
+            <option value="Study">Study</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="note-desc">Description</label>
+          <textarea id="note-desc" class="note-field" placeholder="Type notes details here..." required></textarea>
+        </div>
+
+        <div class="input-group">
+          <label>Color Accent</label>
+          <div class="color-picker" id="color-picker">
+            <div class="color-dot selected" style="background: #fecdd3;" data-color="rose"></div>
+            <div class="color-dot" style="background: #bfdbfe;" data-color="blue"></div>
+            <div class="color-dot" style="background: #a7f3d0;" data-color="emerald"></div>
+            <div class="color-dot" style="background: #fde68a;" data-color="amber"></div>
+            <div class="color-dot" style="background: #ddd6fe;" data-color="purple"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save-note" id="btn-save">Save Note</button>
+        <button type="button" class="btn-cancel" id="btn-cancel">Cancel Edit</button>
+      </form>
+    </div>
+
+    <!-- Right Sidebar: Notes Display Grid -->
+    <div class="notes-main">
+      
+      <!-- Toolbar -->
+      <div class="notes-toolbar">
+        <div class="notes-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="notes-search-input" placeholder="Search notes..." autocomplete="off" />
+        </div>
+        <div class="notes-filter">
+          <button class="filter-chip active" data-filter="all">All</button>
+          <button class="filter-chip" data-filter="Personal">Personal</button>
+          <button class="filter-chip" data-filter="Work">Work</button>
+          <button class="filter-chip" data-filter="Ideas">Ideas</button>
+          <button class="filter-chip" data-filter="Study">Study</button>
+        </div>
+      </div>
+
+      <!-- Notes Grid -->
+      <div class="notes-grid" id="notes-grid">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">Sahil Chauhan © 2025 · B.Tech CSE '29</footer>
+
+<script>
+  // DOM Elements
+  const noteForm = document.getElementById('note-form');
+  const editIdEl = document.getElementById('edit-id');
+  const titleEl = document.getElementById('note-title');
+  const categoryEl = document.getElementById('note-category');
+  const descEl = document.getElementById('note-desc');
+  const colorPicker = document.getElementById('color-picker');
+  const notesGrid = document.getElementById('notes-grid');
+  
+  const searchInput = document.getElementById('notes-search-input');
+  const filterChips = document.querySelectorAll('.filter-chip');
+  const formTitle = document.getElementById('form-title');
+  const btnSave = document.getElementById('btn-save');
+  const btnCancel = document.getElementById('btn-cancel');
+
+  // State
+  let notes = JSON.parse(localStorage.getItem('portfolio_notes')) || [
+    {
+      id: 1,
+      title: 'Shopping List 🍎',
+      category: 'Personal',
+      description: '- Milk & Eggs\n- Fresh Apples\n- Sourdough bread\n- Coffee beans',
+      color: 'rose',
+      date: 'Jun 11, 2026'
+    },
+    {
+      id: 2,
+      title: 'Project Ideas 💡',
+      category: 'Ideas',
+      description: 'Build a ShelfSync bookshelf project. Hook it up to a Google Books API to pull covers, and synch progress with server.',
+      color: 'blue',
+      date: 'Jun 11, 2026'
+    },
+    {
+      id: 3,
+      title: 'Study Planner 📚',
+      category: 'Study',
+      description: 'Monday: Learn JavaScript ES6 core array methods.\nTuesday: DOM traversal basics.\nWednesday: Create a simple web game.',
+      color: 'purple',
+      date: 'Jun 11, 2026'
+    }
+  ];
+
+  let selectedColor = 'rose';
+  let searchQuery = '';
+  let activeFilter = 'all';
+  let isEditing = false;
+
+  // Initialize
+  function init() {
+    renderNotes();
+    setupListeners();
+  }
+
+  // Render Notes grid
+  function renderNotes() {
+    notesGrid.innerHTML = '';
+
+    const filteredNotes = notes.filter(note => {
+      const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            note.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesFilter = activeFilter === 'all' || note.category === activeFilter;
+      
+      return matchesSearch && matchesFilter;
+    });
+
+    if (filteredNotes.length === 0) {
+      notesGrid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📝</div>
+          <div class="empty-text">No notes found matching selected filters</div>
+        </div>
+      `;
+      return;
+    }
+
+    filteredNotes.forEach(note => {
+      const card = document.createElement('div');
+      card.className = `note-card c-${note.color}`;
+      card.innerHTML = `
+        <div class="note-card-header">
+          <span class="note-category">${note.category}</span>
+        </div>
+        <h4 class="note-title">${escapeHtml(note.title)}</h4>
+        <p class="note-desc">${escapeHtml(note.description)}</p>
+        <div class="note-footer">
+          <span>${note.date}</span>
+          <div class="note-actions">
+            <button class="btn-note-action edit-action" title="Edit Note">✏️</button>
+            <button class="btn-note-action delete-action" title="Delete Note">🗑️</button>
+          </div>
+        </div>
+      `;
+
+      // Event listeners for actions
+      card.querySelector('.edit-action').addEventListener('click', () => startEdit(note));
+      card.querySelector('.delete-action').addEventListener('click', () => deleteNote(note.id));
+
+      notesGrid.appendChild(card);
+    });
+  }
+
+  // Action: Add/Update
+  noteForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const title = titleEl.value.trim();
+    const category = categoryEl.value;
+    const description = descEl.value.trim();
+    const dateText = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    if (isEditing) {
+      const id = parseInt(editIdEl.value);
+      notes = notes.map(note => {
+        if (note.id === id) {
+          return {
+            ...note,
+            title,
+            category,
+            description,
+            color: selectedColor,
+            date: dateText
+          };
+        }
+        return note;
+      });
+      stopEdit();
+    } else {
+      const newNote = {
+        id: Date.now(),
+        title,
+        category,
+        description,
+        color: selectedColor,
+        date: dateText
+      };
+      notes.unshift(newNote);
+    }
+
+    saveNotes();
+    renderNotes();
+    noteForm.reset();
+    resetColorSelector();
+  });
+
+  // Action: Delete
+  function deleteNote(id) {
+    if (isEditing && parseInt(editIdEl.value) === id) {
+      stopEdit();
+    }
+    notes = notes.filter(note => note.id !== id);
+    saveNotes();
+    renderNotes();
+  }
+
+  // Action: Edit mode trigger
+  function startEdit(note) {
+    isEditing = true;
+    editIdEl.value = note.id;
+    titleEl.value = note.title;
+    categoryEl.value = note.category;
+    descEl.value = note.description;
+    
+    // Set color dots
+    selectedColor = note.color;
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      dot.classList.toggle('selected', dot.dataset.color === note.color);
+    });
+
+    formTitle.textContent = 'Edit Note';
+    btnSave.textContent = 'Update Note';
+    btnCancel.style.display = 'block';
+    
+    // Focus title
+    titleEl.focus();
+  }
+
+  // Action: Cancel edit mode
+  function stopEdit() {
+    isEditing = false;
+    editIdEl.value = '';
+    formTitle.textContent = 'Create Note';
+    btnSave.textContent = 'Save Note';
+    btnCancel.style.display = 'none';
+    noteForm.reset();
+    resetColorSelector();
+  }
+
+  // Reset color dots selections
+  function resetColorSelector() {
+    selectedColor = 'rose';
+    document.querySelectorAll('.color-dot').forEach((dot, index) => {
+      dot.classList.toggle('selected', index === 0);
+    });
+  }
+
+  // Save State
+  function saveNotes() {
+    localStorage.setItem('portfolio_notes', JSON.stringify(notes));
+  }
+
+  // Listeners Setup
+  function setupListeners() {
+    // Cancel editing click listener
+    btnCancel.addEventListener('click', stopEdit);
+
+    // Color picker bubble click selection
+    colorPicker.addEventListener('click', (e) => {
+      if (e.target.classList.contains('color-dot')) {
+        document.querySelectorAll('.color-dot').forEach(dot => dot.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedColor = e.target.dataset.color;
+      }
+    });
+
+    // Search bar query input listener
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderNotes();
+    });
+
+    // Filters selection listener
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        filterChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeFilter = chip.dataset.filter;
+        renderNotes();
+      });
+    });
+  }
+
+  // Helpers
+  function escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+
+  // Scroll Reveal observer
+  const obs = new IntersectionObserver(e => e.forEach(x => x.isIntersecting && x.target.classList.add('visible')), { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // Run app
+  init();
+</script>
+</body>
+</html>

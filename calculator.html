@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Calculator — Sahil Chauhan</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  /* App-specific styles */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink2);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .back-btn:hover {
+    color: var(--accent);
+    transform: translateX(-4px);
+  }
+
+  .calc-wrapper {
+    max-width: 400px;
+    margin: 0 auto;
+    background: #1e1e1e; /* Dark sleek premium design for calculator */
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Display Screen */
+  .calc-screen {
+    background: #121212;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 120px;
+    border: 1px solid #282828;
+    overflow: hidden;
+  }
+  
+  .calc-history {
+    font-size: 0.95rem;
+    color: #888;
+    min-height: 1.5rem;
+    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Outfit', sans-serif;
+  }
+  
+  .calc-display {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: #fff;
+    margin-top: 0.5rem;
+    word-break: break-all;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox */
+  }
+  .calc-display::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
+  /* Buttons Grid */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  .calc-btn {
+    border: none;
+    border-radius: 12px;
+    height: 60px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    user-select: none;
+    outline: none;
+  }
+
+  .calc-btn:active, .calc-btn.active-press {
+    transform: scale(0.95);
+  }
+
+  /* Dark palette for calculator */
+  .btn-num {
+    background: #2d2d2d;
+    color: #fff;
+  }
+  .btn-num:hover {
+    background: #3d3d3d;
+  }
+
+  .btn-op {
+    background: #3b82f6; /* Modern blue accent */
+    color: #fff;
+  }
+  .btn-op:hover {
+    background: #60a5fa;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  }
+
+  .btn-tool {
+    background: #3e3e3e;
+    color: #e2e8f0;
+  }
+  .btn-tool:hover {
+    background: #4e4e4e;
+  }
+
+  .btn-action {
+    background: #ef4444;
+    color: #fff;
+  }
+  .btn-action:hover {
+    background: #f87171;
+  }
+
+  .btn-equal {
+    background: #10b981; /* Green accent */
+    color: #fff;
+    grid-column: span 2;
+  }
+  .btn-equal:hover {
+    background: #34d399;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  }
+
+  /* Keyboard support badge */
+  .kb-badge {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #666;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">SC<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="skills.html">Skills</a></li>
+    <li><a href="projects.html" class="active">Projects</a></li>
+    <li><a href="achievements.html">Achievements</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="page">
+  <a href="projects.html" class="back-btn">← Back to Projects</a>
+  
+  <div class="page-eyebrow">Interactive Applications</div>
+  <h1 class="page-title">Sleek <em>Calculator</em></h1>
+  <div class="divider"></div>
+
+  <div class="calc-wrapper reveal">
+    <!-- Display -->
+    <div class="calc-screen">
+      <div class="calc-history" id="calc-history"></div>
+      <div class="calc-display" id="calc-display">0</div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="calc-grid">
+      <button class="calc-btn btn-action" data-key="clear">AC</button>
+      <button class="calc-btn btn-tool" data-key="backspace">⌫</button>
+      <button class="calc-btn btn-tool" data-key="percent">%</button>
+      <button class="calc-btn btn-op" data-key="divide">÷</button>
+
+      <button class="calc-btn btn-num" data-key="7">7</button>
+      <button class="calc-btn btn-num" data-key="8">8</button>
+      <button class="calc-btn btn-num" data-key="9">9</button>
+      <button class="calc-btn btn-op" data-key="multiply">×</button>
+
+      <button class="calc-btn btn-num" data-key="4">4</button>
+      <button class="calc-btn btn-num" data-key="5">5</button>
+      <button class="calc-btn btn-num" data-key="6">6</button>
+      <button class="calc-btn btn-op" data-key="subtract">-</button>
+
+      <button class="calc-btn btn-num" data-key="1">1</button>
+      <button class="calc-btn btn-num" data-key="2">2</button>
+      <button class="calc-btn btn-num" data-key="3">3</button>
+      <button class="calc-btn btn-op" data-key="add">+</button>
+
+      <button class="calc-btn btn-num" data-key="negate">±</button>
+      <button class="calc-btn btn-num" data-key="0">0</button>
+      <button class="calc-btn btn-num" data-key="decimal">.</button>
+      <button class="calc-btn btn-op" data-key="divide" style="display:none;"></button> <!-- Helper placeholder -->
+      <button class="calc-btn btn-equal" data-key="equal">=</button>
+    </div>
+
+    <div class="kb-badge">⌨️ Keyboard Input Supported</div>
+  </div>
+</main>
+
+<footer class="footer">Sahil Chauhan © 2025 · B.Tech CSE '29</footer>
+
+<script>
+  // DOM Elements
+  const displayEl = document.getElementById('calc-display');
+  const historyEl = document.getElementById('calc-history');
+  const buttons = document.querySelectorAll('.calc-btn');
+
+  // Calculator State
+  let currentVal = '0';
+  let firstOperand = null;
+  let operator = null;
+  let waitingForSecondOperand = false;
+  let historyStr = '';
+
+  // Listeners setup
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      handleInput(key);
+    });
+  });
+
+  // Handle Input Routing
+  function handleInput(key) {
+    if (!isNaN(key) || key === '0') {
+      inputDigit(key);
+    } else {
+      switch (key) {
+        case 'decimal':
+          inputDecimal();
+          break;
+        case 'negate':
+          inputNegate();
+          break;
+        case 'percent':
+          inputPercent();
+          break;
+        case 'clear':
+          resetCalculator();
+          break;
+        case 'backspace':
+          handleBackspace();
+          break;
+        case 'add':
+        case 'subtract':
+        case 'multiply':
+        case 'divide':
+          handleOperator(key);
+          break;
+        case 'equal':
+          handleEqual();
+          break;
+      }
+    }
+    updateDisplay();
+  }
+
+  // Input functions
+  function inputDigit(digit) {
+    if (waitingForSecondOperand) {
+      currentVal = digit;
+      waitingForSecondOperand = false;
+    } else {
+      currentVal = currentVal === '0' ? digit : currentVal + digit;
+    }
+  }
+
+  function inputDecimal() {
+    if (waitingForSecondOperand) {
+      currentVal = '0.';
+      waitingForSecondOperand = false;
+      return;
+    }
+    if (!currentVal.includes('.')) {
+      currentVal += '.';
+    }
+  }
+
+  function inputNegate() {
+    currentVal = (parseFloat(currentVal) * -1).toString();
+  }
+
+  function inputPercent() {
+    currentVal = (parseFloat(currentVal) / 100).toString();
+  }
+
+  function handleBackspace() {
+    if (currentVal.length > 1) {
+      currentVal = currentVal.slice(0, -1);
+    } else {
+      currentVal = '0';
+    }
+  }
+
+  // Operations handler
+  function handleOperator(nextOperator) {
+    const inputValue = parseFloat(currentVal);
+
+    if (operator && waitingForSecondOperand) {
+      operator = nextOperator;
+      updateHistoryString();
+      return;
+    }
+
+    if (firstOperand === null && !isNaN(inputValue)) {
+      firstOperand = inputValue;
+    } else if (operator) {
+      const result = calculate(firstOperand, inputValue, operator);
+      currentVal = String(parseFloat(result.toFixed(10)));
+      firstOperand = result;
+    }
+
+    waitingForSecondOperand = true;
+    operator = nextOperator;
+    updateHistoryString();
+  }
+
+  // Math calculation
+  function calculate(first, second, op) {
+    switch (op) {
+      case 'add':
+        return first + second;
+      case 'subtract':
+        return first - second;
+      case 'multiply':
+        return first * second;
+      case 'divide':
+        if (second === 0) {
+          alert('Cannot divide by zero');
+          resetCalculator();
+          return 0;
+        }
+        return first / second;
+      default:
+        return second;
+    }
+  }
+
+  function handleEqual() {
+    if (operator === null) return;
+    const inputValue = parseFloat(currentVal);
+    const result = calculate(firstOperand, inputValue, operator);
+    
+    const opSymbols = { add: '+', subtract: '-', multiply: '×', divide: '÷' };
+    historyStr = `${firstOperand} ${opSymbols[operator]} ${inputValue} =`;
+    
+    currentVal = String(parseFloat(result.toFixed(10)));
+    firstOperand = null;
+    operator = null;
+    waitingForSecondOperand = false;
+  }
+
+  function resetCalculator() {
+    currentVal = '0';
+    firstOperand = null;
+    operator = null;
+    waitingForSecondOperand = false;
+    historyStr = '';
+  }
+
+  // Update history banner
+  function updateHistoryString() {
+    const opSymbols = { add: '+', subtract: '-', multiply: '×', divide: '÷' };
+    historyStr = `${firstOperand} ${opSymbols[operator]}`;
+  }
+
+  // Update Display elements
+  function updateDisplay() {
+    displayEl.textContent = currentVal;
+    historyEl.textContent = historyStr;
+    
+    // Auto-scroll display to the right when overflowing
+    displayEl.scrollLeft = displayEl.scrollWidth;
+  }
+
+  // Keyboard mapping
+  window.addEventListener('keydown', (e) => {
+    let keyToTrigger = null;
+
+    if (!isNaN(e.key) && e.key !== ' ') {
+      keyToTrigger = e.key;
+    } else {
+      switch (e.key) {
+        case '.':
+          keyToTrigger = 'decimal';
+          break;
+        case '+':
+          keyToTrigger = 'add';
+          break;
+        case '-':
+          keyToTrigger = 'subtract';
+          break;
+        case '*':
+          keyToTrigger = 'multiply';
+          break;
+        case '/':
+          e.preventDefault();
+          keyToTrigger = 'divide';
+          break;
+        case '=':
+        case 'Enter':
+          e.preventDefault();
+          keyToTrigger = 'equal';
+          break;
+        case 'Backspace':
+          keyToTrigger = 'backspace';
+          break;
+        case 'Escape':
+          keyToTrigger = 'clear';
+          break;
+        case '%':
+          keyToTrigger = 'percent';
+          break;
+      }
+    }
+
+    if (keyToTrigger) {
+      const button = document.querySelector(`.calc-btn[data-key="${keyToTrigger}"]`);
+      if (button) {
+        button.classList.add('active-press');
+        setTimeout(() => button.classList.remove('active-press'), 100);
+      }
+      handleInput(keyToTrigger);
+    }
+  });
+
+  // Reveal observer
+  const obs = new IntersectionObserver(e => e.forEach(x => x.isIntersecting && x.target.classList.add('visible')), { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>

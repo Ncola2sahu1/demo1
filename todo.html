@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>To-Do List — Sahil Chauhan</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  /* App-specific styles */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink2);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .back-btn:hover {
+    color: var(--accent);
+    transform: translateX(-4px);
+  }
+
+  .app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+    padding: 2.5rem;
+  }
+
+  /* Progress area */
+  .progress-section {
+    margin-bottom: 2rem;
+    padding: 1.25rem;
+    background: var(--bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .progress-label {
+    color: var(--ink2);
+  }
+  .progress-percent {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 10px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Form controls */
+  .todo-form {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .todo-input-wrap {
+    flex: 1;
+    position: relative;
+  }
+  .todo-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .todo-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.08);
+  }
+  .btn-add {
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.85rem 1.5rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .btn-add:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  /* Search & filter toolbar */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 180px;
+    position: relative;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem 0.6rem 2.2rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus {
+    border-color: var(--accent);
+  }
+  .search-icon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    color: var(--ink3);
+    pointer-events: none;
+  }
+  .filter-group {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--bg2);
+    padding: 0.25rem;
+    border-radius: 8px;
+  }
+  .filter-btn {
+    border: none;
+    background: transparent;
+    padding: 0.4rem 0.9rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink2);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .filter-btn:hover {
+    color: var(--ink);
+  }
+  .filter-btn.active {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Todo List container */
+  .todo-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .todo-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .todo-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .todo-list::-webkit-scrollbar-thumb {
+    background: var(--bg3);
+    border-radius: 10px;
+  }
+
+  .todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: transform 0.2s, opacity 0.2s, border-color 0.2s, background-color 0.2s;
+    animation: slideIn 0.3s ease both;
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .todo-item.completed {
+    background: rgba(238, 236, 230, 0.5);
+    border-color: rgba(221, 219, 211, 0.5);
+  }
+
+  .todo-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Custom Checkbox */
+  .checkbox-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--ink3);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .checkbox-btn:hover {
+    border-color: var(--accent);
+  }
+  .todo-item.completed .checkbox-btn {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .checkbox-btn::after {
+    content: '✓';
+    font-size: 0.75rem;
+    color: #fff;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .todo-item.completed .checkbox-btn::after {
+    opacity: 1;
+  }
+
+  .todo-text {
+    font-size: 0.95rem;
+    color: var(--ink);
+    word-break: break-word;
+    transition: all 0.2s ease;
+  }
+  .todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: var(--ink3);
+  }
+
+  /* Actions */
+  .todo-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+  }
+  .btn-delete {
+    background: transparent;
+    border: none;
+    color: var(--ink3);
+    cursor: pointer;
+    padding: 0.35rem;
+    border-radius: 6px;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .btn-delete:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+  }
+
+  /* Footer summary */
+  .todo-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.88rem;
+    color: var(--ink2);
+  }
+  .btn-clear {
+    background: transparent;
+    border: none;
+    color: var(--ink2);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .btn-clear:hover {
+    color: #ef4444;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--ink3);
+  }
+  .empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .empty-text {
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">SC<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="skills.html">Skills</a></li>
+    <li><a href="projects.html" class="active">Projects</a></li>
+    <li><a href="achievements.html">Achievements</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<main class="page">
+  <a href="projects.html" class="back-btn">← Back to Projects</a>
+  
+  <div class="page-eyebrow">Interactive Applications</div>
+  <h1 class="page-title">Task <em>Manager</em></h1>
+  <div class="divider"></div>
+
+  <div class="app-container reveal">
+    
+    <!-- Progress section -->
+    <div class="progress-section">
+      <div class="progress-header">
+        <span class="progress-label">Task Completion Progress</span>
+        <span class="progress-percent" id="progress-percent">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form class="todo-form" id="todo-form">
+      <div class="todo-input-wrap">
+        <input type="text" class="todo-input" id="todo-input" placeholder="Add a new task..." required autocomplete="off" />
+      </div>
+      <button type="submit" class="btn-add">
+        <span>+</span> Add Task
+      </button>
+    </form>
+
+    <!-- Toolbar for search and filters -->
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="search-input" placeholder="Search tasks..." autocomplete="off" />
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="active">Active</button>
+        <button class="filter-btn" data-filter="completed">Completed</button>
+      </div>
+    </div>
+
+    <!-- List -->
+    <ul class="todo-list" id="todo-list">
+      <!-- Generated dynamically -->
+    </ul>
+
+    <!-- Footer -->
+    <div class="todo-footer">
+      <span id="items-left">0 items active</span>
+      <button class="btn-clear" id="btn-clear">Clear Completed</button>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">Sahil Chauhan © 2025 · B.Tech CSE '29</footer>
+
+<script>
+  // Elements
+  const todoForm = document.getElementById('todo-form');
+  const todoInput = document.getElementById('todo-input');
+  const todoList = document.getElementById('todo-list');
+  const searchInput = document.getElementById('search-input');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const itemsLeft = document.getElementById('items-left');
+  const btnClear = document.getElementById('btn-clear');
+  const progressPercent = document.getElementById('progress-percent');
+  const progressBarFill = document.getElementById('progress-bar-fill');
+
+  // State
+  let todos = JSON.parse(localStorage.getItem('portfolio_todos')) || [
+    { id: 1, text: 'Design the new portfolio dashboard layout', completed: true },
+    { id: 2, text: 'Integrate Open-Meteo Weather API', completed: false },
+    { id: 3, text: 'Review feedback on calculator app', completed: false }
+  ];
+
+  let currentFilter = 'all';
+  let searchQuery = '';
+
+  // Initialize
+  function init() {
+    renderTodos();
+    setupListeners();
+  }
+
+  // Render
+  function renderTodos() {
+    todoList.innerHTML = '';
+    
+    // Filter and search logic
+    const filteredTodos = todos.filter(todo => {
+      const matchesSearch = todo.text.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (currentFilter === 'active') {
+        return matchesSearch && !todo.completed;
+      }
+      if (currentFilter === 'completed') {
+        return matchesSearch && todo.completed;
+      }
+      return matchesSearch;
+    });
+
+    if (filteredTodos.length === 0) {
+      todoList.innerHTML = `
+        <li class="empty-state">
+          <div class="empty-icon">📁</div>
+          <div class="empty-text">${searchQuery ? 'No matching tasks found' : 'No tasks in this list'}</div>
+        </li>
+      `;
+    } else {
+      filteredTodos.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+        li.dataset.id = todo.id;
+        
+        li.innerHTML = `
+          <div class="todo-left">
+            <button class="checkbox-btn" aria-label="Toggle Complete"></button>
+            <span class="todo-text">${escapeHtml(todo.text)}</span>
+          </div>
+          <div class="todo-actions">
+            <button class="btn-delete" aria-label="Delete Task">🗑️</button>
+          </div>
+        `;
+        
+        // Listeners for checkbox and delete
+        li.querySelector('.checkbox-btn').addEventListener('click', () => toggleTodo(todo.id));
+        li.querySelector('.btn-delete').addEventListener('click', () => deleteTodo(todo.id));
+        
+        todoList.appendChild(li);
+      });
+    }
+
+    // Update stats
+    updateStats();
+  }
+
+  // Action: Add
+  function addTodo(text) {
+    const newTodo = {
+      id: Date.now(),
+      text: text,
+      completed: false
+    };
+    todos.unshift(newTodo);
+    saveTodos();
+    renderTodos();
+  }
+
+  // Action: Toggle
+  function toggleTodo(id) {
+    todos = todos.map(todo => {
+      if (todo.id === id) {
+        return { ...todo, completed: !todo.completed };
+      }
+      return todo;
+    });
+    saveTodos();
+    renderTodos();
+  }
+
+  // Action: Delete
+  function deleteTodo(id) {
+    todos = todos.filter(todo => todo.id !== id);
+    saveTodos();
+    renderTodos();
+  }
+
+  // Action: Clear Completed
+  function clearCompleted() {
+    todos = todos.filter(todo => !todo.completed);
+    saveTodos();
+    renderTodos();
+  }
+
+  // Update Stats & UI counters
+  function updateStats() {
+    const activeCount = todos.filter(t => !t.completed).length;
+    const completedCount = todos.filter(t => t.completed).length;
+    const totalCount = todos.length;
+
+    itemsLeft.textContent = `${activeCount} item${activeCount !== 1 ? 's' : ''} active`;
+    
+    // Progress calculation
+    const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    progressPercent.textContent = `${percentage}%`;
+    progressBarFill.style.width = `${percentage}%`;
+  }
+
+  // Save state
+  function saveTodos() {
+    localStorage.setItem('portfolio_todos', JSON.stringify(todos));
+  }
+
+  // Listeners Setup
+  function setupListeners() {
+    // Form submission
+    todoForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = todoInput.value.trim();
+      if (text) {
+        addTodo(text);
+        todoInput.value = '';
+      }
+    });
+
+    // Search query input
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderTodos();
+    });
+
+    // Filter switching
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTodos();
+      });
+    });
+
+    // Clear completed action
+    btnClear.addEventListener('click', clearCompleted);
+  }
+
+  // Helpers
+  function escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+
+  // Observer reveal animations
+  const obs = new IntersectionObserver(e => e.forEach(x => x.isIntersecting && x.target.classList.add('visible')), { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // Run app
+  init();
+</script>
+</body>
+</html>
